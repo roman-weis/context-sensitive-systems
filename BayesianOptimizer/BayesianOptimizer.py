@@ -79,6 +79,8 @@ class BayesianOptimizer:
     def fit(self, objective_function, search_space):
         np.random.seed(self.random_state)
 
+        # Initial dataset
+
         for _ in range(self.n_iter):
             # Fit the surrogate model to the data
             self.surrogate_model = GaussianProcessRegressor(

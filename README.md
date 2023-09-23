@@ -13,6 +13,7 @@ This repository contains the code and resources for a programming exercise relat
 
 In this exercise, we explore how to sense DeviceMotion on a mobile device using JavaScript and Edge ML. Additionally, we use a Jupyter notebook for analyzing the collected sensor data, training various machine learning models, and optimizing them for specific tasks.
 
+
 ## Folder Structure
 
 - **JS Folder**: Contains the JavaScript code used in CodeSandbox for sensing DeviceMotion on a mobile device using Edge ML and JavaScript.
