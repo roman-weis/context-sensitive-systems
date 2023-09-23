@@ -1,7 +1,6 @@
 import numpy as np
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import Matern
-from scipy.optimize import minimize
 import numpy as np
 from scipy.optimize import minimize
 from scipy.stats import norm
@@ -63,23 +62,23 @@ class ExpectedImprovement:
 
         return opt_result
 
-
-
-
 class BayesianOptimizer:
     def __init__(self, n_iter=50, random_state=None):
         self.n_iter = n_iter
         self.random_state = random_state
         self.surrogate_model = None
         self.best_params = None
-        self.best_value = 0
+        self.best_ei = 0  # Renamed from best_value to best_ei
         self.X = None
         self.y = None
 
     def fit(self, objective_function, search_space):
         np.random.seed(self.random_state)
 
-        # Initial dataset
+        # Initialize the surrogate model with an initial design
+        initial_design = np.random.uniform(search_space[0][0], search_space[0][1], (5, len(search_space)))
+        self.X = initial_design
+        self.y = [objective_function(x) for x in initial_design]
 
         for _ in range(self.n_iter):
             # Fit the surrogate model to the data
@@ -90,22 +89,23 @@ class BayesianOptimizer:
             )
             self.surrogate_model.fit(self.X, self.y)
 
-            acquisition = ExpectedImprovement(self.surrogate_model, self.best_value, xi=0.01)
+            # Create the ExpectedImprovement acquisition function
+            acquisition = ExpectedImprovement(self.surrogate_model, self.best_ei, xi=0.01)
 
+            # Optimize the acquisition function to find the next query point
             opt_result = acquisition.optimize(search_space)
 
             next_query_point = opt_result.x
-            next_value = -opt_result.fun  # Invert the sign as we minimized the negative EI
+            next_ei = -opt_result.fun  # Renamed from next_value to next_ei
 
             # Update the dataset with the new observation
             self.X = np.vstack([self.X, next_query_point])
             self.y = np.append(self.y, objective_function(next_query_point))
 
-            # Update the best observed value and corresponding input
-            if self.best_value is None or next_value > self.best_value:
-                self.best_value = next_value
+            # Update the best observed EI and corresponding input
+            if self.best_ei is None or next_ei > self.best_ei:
+                self.best_ei = next_ei
                 self.best_params = next_query_point
 
     def get_best_params(self):
         return self.best_params
-
